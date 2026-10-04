@@ -10,6 +10,38 @@ Lab 3b option: Mental Health Chatbot / Counsellor Training Web-Based App
 
 ---
 
+## Quick start — no API key needed
+
+The application runs end-to-end with **no API key and no configuration**. With
+no key present it falls back to a built-in offline mock LLM, so every feature —
+registration, patient creation, all three modes, role switching, session
+summaries, and the scored feedback report — is fully clickable. Only the
+dialogue itself is scripted instead of generated. The UI shows a `mock LLM`
+badge when this is active.
+
+```bash
+git clone https://github.com/zhld25-lab/counselsim.git
+cd counselsim
+pip install -r requirements.txt
+python -m uvicorn backend.main:app --reload --port 8000
+```
+
+Open <http://127.0.0.1:8000> and register any username (3+ chars) and password
+(6+ chars). You do **not** need to create a `.env` file for this.
+
+To run the test suites — also no key required:
+
+```bash
+python tools/test_turnlogic.py   # 14 unit tests, instant
+python tools/smoke_test.py       # 61 end-to-end assertions
+```
+
+For real LLM-generated dialogue, add a free Groq key — see
+[Environment Variables](#environment-variables). Everything below describes the
+full system.
+
+---
+
 ## Overview
 
 CounselSim is a web application for practising counselling skills against an
