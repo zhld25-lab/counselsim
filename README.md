@@ -373,8 +373,9 @@ agent routes to `llm/mock.py` instead of the network.
   revealed, but it sometimes files an *unrevealed* item under
   `unresolved_threads`. Since the summary is shown to the counsellor in the
   next session, this can pre-empt a disclosure the trainee was meant to earn.
-  Observed once in testing; a prompt-level fix would be to constrain
-  `unresolved_threads` to topics actually present in the transcript.
+  Reproduced in two separate sessions (visible in both summary screenshots as
+  an unrevealed "crush on a classmate" thread); a prompt-level fix would be to
+  constrain `unresolved_threads` to topics actually present in the transcript.
 - **Grading is non-deterministic.** The same transcript can score differently
   across runs; there is no fixed rubric anchor or calibration set.
 - **Single-user sessions.** No concurrency control; two browser tabs on the
@@ -420,6 +421,55 @@ Safety measures actually implemented in the code:
 The LLM may still produce inaccurate, culturally insensitive, or
 clinically inappropriate output. Nothing it says should be taken as
 professional advice.
+
+---
+
+## Screenshots
+
+`docs/screenshots/` contains captures from live sessions run against Groq.
+They focus on the two outputs that are hardest to judge from code alone — the
+scored feedback report and the structured session summary.
+
+**Attribution-aware grading** (the feature that decides *whose* turns get
+evaluated):
+
+| File | What it shows |
+|---|---|
+| `01-feedback-mode-a-7of10.png` | Mode A report. Header: *"Evaluating **your 6 turn(s)** as counsellor (turns 2, 4, 6, 8, 10, 12)"* — the trainee held the chair throughout. Overall 7/10. |
+| `06-attribution-mixed-turns.png` | A session where the trainee **switched seats mid-way**. Header: *"Evaluating your **3** turn(s)… The AI's **3** counsellor turn(s) were excluded."* The report grades only the human turns. |
+| `09-feedback-mode-c-8of10.png` | Mode C report. Header: *"You never sat in the counsellor's chair, so this evaluates the **AI counsellor's** 6 turn(s)."* The third branch of the same rule. |
+
+**Scored feedback detail:**
+
+| File | What it shows |
+|---|---|
+| `02-feedback-strengths.png` | "Also assessed" (active listening, open-ended questioning, safety & ethics) and the three strengths, each citing turn numbers. |
+| `03-feedback-improvements-safety-check.png` | Improvement items for turns 10, 2 and 12, including a flag that turn 12 omitted a brief safety check — with a suggested rewrite. |
+| `04-feedback-improvements-alt.png`, `05-feedback-strengths-alt.png` | The same report sections from another session. |
+| `10-feedback-mode-c-assessed.png`, `11-feedback-mode-c-improvements.png` | The equivalent sections of the Mode C report. |
+
+**Session memory:**
+
+| File | What it shows |
+|---|---|
+| `07-session-summary-s1.png` | Structured case note after session 1 — *"Mood: anxious → mixed relief and fear, Alliance: strong"*, plus disclosed facts and hidden info revealed. Footer: *"Saved — this is what the client (and the counsellor) will remember next time."* |
+| `08-session-summary-s2.png` | Session 2's summary for the same client, showing how the picture develops across sessions. |
+
+**Supervisor score comparison (Mode C only):**
+
+| File | What it shows |
+|---|---|
+| `12-scores-vs-ai-supervisor.png` | The trainee's scores next to the AI supervisor's: cultural sensitivity 4 vs 8, therapeutic progress 5 vs 7, boundaries 9 vs 9, empathy 5 vs 8, flow 6 vs 6; mean absolute difference 1.8. |
+
+The cultural-sensitivity gap in that last capture is the most interesting
+result in the set, and it is a disagreement about definitions rather than a
+scoring error. The AI scored 8 because the counsellor "avoids cultural
+assumptions… without stereotyping"; the trainee scored 4 because the
+counsellor never engaged the client's cultural context at all, treating
+parental expectation as generic pressure. Whether cultural sensitivity means
+*not imposing* assumptions or *actively exploring* context is a live question
+in counselling supervision — which is precisely the kind of thing Mode C is
+meant to surface.
 
 ---
 
