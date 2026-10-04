@@ -368,6 +368,13 @@ agent routes to `llm/mock.py` instead of the network.
   the numbers as discussion prompts, not assessment.
 - **Simulated clients are not real people.** Personas are LLM-generated
   fiction. They may be culturally stereotyped or unrealistically cooperative.
+- **Session summaries can leak undisclosed persona details.** The summariser
+  receives the client's hidden-information list so it can record what *was*
+  revealed, but it sometimes files an *unrevealed* item under
+  `unresolved_threads`. Since the summary is shown to the counsellor in the
+  next session, this can pre-empt a disclosure the trainee was meant to earn.
+  Observed once in testing; a prompt-level fix would be to constrain
+  `unresolved_threads` to topics actually present in the transcript.
 - **Grading is non-deterministic.** The same transcript can score differently
   across runs; there is no fixed rubric anchor or calibration set.
 - **Single-user sessions.** No concurrency control; two browser tabs on the
