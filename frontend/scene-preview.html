@@ -1,0 +1,149 @@
+<title>Counselling Room Preview</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap">
+<style>
+  :root{
+    --bg:#141019; --panel:#241d2e; --panel2:#2d2438; --line:#3b3048;
+    --ink:#f2ecf7; --muted:#a496b5;
+    --client:#5aa9f2; --counselor:#4fc38a; --supervisor:#b184f0; --warm:#f0b86e;
+  }
+  html,body{height:100%}
+  body{
+    margin:0;background:radial-gradient(1100px 620px at 72% -12%,#2a2136,var(--bg));
+    color:var(--ink);font:15px/1.5 "Segoe UI",system-ui,-apple-system,sans-serif;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding-block:22px 34px;padding-left:16px;padding-right:16px;
+        display:flex;flex-direction:column;gap:16px}
+  h1{font-family:Outfit,"Segoe UI",system-ui,sans-serif;font-weight:700;font-size:1.7rem;margin:0;letter-spacing:-.015em}
+  .sub{color:var(--muted);margin:0;max-width:64ch;font-size:.92rem}
+  .note{font-size:.78rem;color:#8d7ea3;background:#1d1724;border:1px solid var(--line);
+        border-left:3px solid var(--warm);border-radius:0 8px 8px 0;padding:9px 12px}
+  #stage{position:relative;height:min(62vh,520px);border-radius:16px;overflow:hidden;
+         border:1px solid var(--line);background:#0f0b14}
+  #scene{width:100%;height:100%;display:block}
+  #overlay{position:absolute;inset:0;pointer-events:none}
+  .hint{position:absolute;left:12px;bottom:10px;font-size:.72rem;color:#6d5f7d}
+  .bubble{position:absolute;transform:translate(-50%,-100%);background:#fff;color:#20182b;
+          border-radius:14px;padding:9px 13px;max-width:260px;font-size:.85rem;line-height:1.45;
+          box-shadow:0 10px 24px -12px #000;pointer-events:none}
+  .bubble::after{content:"";position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);
+          border:8px solid transparent;border-top-color:#fff;border-bottom:0}
+  .bubble.client{border-bottom:3px solid var(--client)}
+  .bubble.counselor{border-bottom:3px solid var(--counselor)}
+  .bubble .who{display:block;font-size:.66rem;text-transform:uppercase;letter-spacing:.09em;
+          color:#8a7d9b;margin-bottom:2px}
+  .thinking-dots span{animation:blink 1.2s infinite;font-weight:700}
+  .thinking-dots span:nth-child(2){animation-delay:.2s}
+  .thinking-dots span:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,60%,100%{opacity:.25}30%{opacity:1}}
+  .rail{display:flex;flex-wrap:wrap;gap:18px}
+  .group{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px 15px;flex:1 1 260px}
+  .group h2{font-size:.72rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);
+            margin:0 0 9px;font-weight:600}
+  .btns{display:flex;flex-wrap:wrap;gap:7px}
+  button{font:inherit;cursor:pointer;color:var(--ink);background:#191322;border:1px solid var(--line);
+         border-radius:9px;padding:.42em .85em;transition:.15s}
+  button:hover{background:#3a2f48;border-color:#584a6b}
+  button.on{border-color:#8a63d8;background:#2e2344}
+  button.go{background:linear-gradient(180deg,#7a54c9,#5f3fa8);border-color:#8a63d8}
+  .dot{width:9px;height:9px;border-radius:3px;display:inline-block;margin-right:7px;vertical-align:1px}
+  .c-client{background:var(--client)}.c-counselor{background:var(--counselor)}.c-supervisor{background:var(--supervisor)}
+  button:focus-visible{outline:2px solid var(--warm);outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){.thinking-dots span{animation:none}}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Counselling Room Preview</h1>
+    <p class="sub">The CounselSim 3D stage on its own — original blocky toy figures, six facial
+    expressions, speech bubbles and the “YOU” marker that flies between chairs when you change role.
+    No backend, no API key: the dialogue below is canned.</p>
+  </header>
+
+  <div id="stage">
+    <canvas id="scene"></canvas>
+    <div id="overlay"></div>
+    <div class="hint">drag to look around</div>
+  </div>
+
+  <div class="note">Seating: client on the sofa (blue), counsellor in the armchair (green),
+    supervisor behind the one-way mirror (purple). In the real app the supervisor’s whisper
+    appears as a paper note beside the counsellor — the client never sees it.</div>
+
+  <div class="rail">
+    <div class="group">
+      <h2>Who are you playing?</h2>
+      <div class="btns" id="roles">
+        <button data-role="client"><i class="dot c-client"></i>Client</button>
+        <button data-role="counselor" class="on"><i class="dot c-counselor"></i>Counsellor</button>
+        <button data-role="supervisor"><i class="dot c-supervisor"></i>Supervisor</button>
+      </div>
+    </div>
+    <div class="group">
+      <h2>Client expression</h2>
+      <div class="btns" id="faces"></div>
+    </div>
+    <div class="group">
+      <h2>Dialogue</h2>
+      <div class="btns">
+        <button class="go" id="play">Play a sample exchange</button>
+        <button id="think">Show “thinking…”</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/figures.js"></script>
+<script src="js/scene.js"></script>
+<script>
+(function () {
+  const stage = document.getElementById("stage");
+  if (!Scene.init(document.getElementById("scene"), document.getElementById("overlay"))) {
+    stage.innerHTML = '<p style="padding:24px;color:#a496b5">Three.js could not load, so the 3D stage is unavailable.</p>';
+    return;
+  }
+  Scene.setYou("counselor", true);
+
+  document.querySelectorAll("#roles button").forEach((b) => b.addEventListener("click", () => {
+    document.querySelectorAll("#roles button").forEach((x) => x.classList.toggle("on", x === b));
+    Scene.setYou(b.dataset.role);
+  }));
+
+  const faces = document.getElementById("faces");
+  faces.innerHTML = Figures.EXPRESSIONS
+    .map((e) => `<button data-face="${e}">${e}</button>`).join("");
+  faces.addEventListener("click", (ev) => {
+    const b = ev.target.closest("[data-face]");
+    if (!b) return;
+    faces.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+    Scene.setExpression("client", b.dataset.face);
+  });
+
+  const script = [
+    ["client", "I wasn't sure I'd actually come today... but here I am.", "anxious"],
+    ["counselor", "Thank you for coming in — that first step isn't small. What's been on your mind most this week?", "neutral"],
+    ["client", "Everyone else seems to manage fine. That's the part I keep getting stuck on.", "sad"],
+    ["counselor", "It sounds like you've been carrying this mostly on your own. What has that been like?", "thinking"],
+    ["client", "It helps a bit, saying it out loud. I didn't expect that.", "relieved"],
+  ];
+
+  const playBtn = document.getElementById("play");
+  let running = false;
+  playBtn.addEventListener("click", async () => {
+    if (running) return;
+    running = true; playBtn.disabled = true; playBtn.textContent = "Playing…";
+    for (const [who, text, emo] of script) {
+      Scene.showThinking(who, true);
+      await new Promise((r) => setTimeout(r, 520));
+      Scene.showThinking(who, false);
+      await Scene.speak(who, text, emo);
+    }
+    running = false; playBtn.disabled = false; playBtn.textContent = "Play a sample exchange";
+  });
+
+  document.getElementById("think").addEventListener("click", () => {
+    Scene.showThinking("client", true);
+    setTimeout(() => Scene.showThinking("client", false), 2200);
+  });
+})();
+</script>

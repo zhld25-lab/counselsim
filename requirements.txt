@@ -1,0 +1,12 @@
+# Core - always needed
+fastapi>=0.110
+uvicorn[standard]>=0.27
+sqlalchemy>=2.0
+pydantic>=2.6
+bcrypt>=4.1
+python-dotenv>=1.0
+httpx>=0.27
+
+# Optional - only if you set GEMINI_API_KEY instead of GROQ_API_KEY.
+# The app runs fine without it on the default (Groq) provider.
+# google-genai>=1.0

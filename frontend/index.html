@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CounselSim</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="banner" class="banner">Training simulation only — not a substitute for real clinical care.</div>
+
+<!-- ================= AUTH ================= -->
+<section id="screen-auth" class="screen active">
+  <div class="auth-wrap">
+    <div class="brand">
+      <div class="brand-mark"><span></span><span></span><span></span></div>
+      <h1>CounselSim</h1>
+      <p class="tagline">A three-role counselling simulator — play the client, the counsellor, or the supervisor.</p>
+    </div>
+    <div class="card auth-card">
+      <div class="tabs">
+        <button class="tab active" data-authtab="login">Login</button>
+        <button class="tab" data-authtab="register">Register</button>
+      </div>
+      <label>Username<input id="auth-username" autocomplete="username" placeholder="your username"></label>
+      <label>Password<input id="auth-password" type="password" autocomplete="current-password" placeholder="at least 6 characters"></label>
+      <button id="auth-submit" class="btn primary">Login</button>
+      <p id="auth-error" class="error"></p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= HOME ================= -->
+<section id="screen-home" class="screen">
+  <header class="topbar">
+    <h2>CounselSim</h2>
+    <div class="spacer"></div>
+    <span id="home-user" class="muted"></span>
+    <button id="logout" class="btn ghost">Log out</button>
+  </header>
+  <div class="home-grid">
+    <button class="big-choice" id="go-real">
+      <span class="big-icon">&#129535;</span>
+      <strong>Real Patients</strong>
+      <small>Work with de-identified real case data</small>
+    </button>
+    <button class="big-choice" id="go-sim">
+      <span class="big-icon">&#129513;</span>
+      <strong>Simulated Patients</strong>
+      <small>LLM-played clients in a 3D counselling room</small>
+    </button>
+  </div>
+</section>
+
+<!-- ================= REAL PATIENTS (placeholder) ================= -->
+<section id="screen-real" class="screen">
+  <header class="topbar">
+    <button class="btn ghost back" data-back="home">&#8592; Back</button>
+    <h2>Real Patients</h2>
+  </header>
+  <div class="card placeholder">
+    <h3>Not available yet</h3>
+    <p>This area would connect to real patient records. Because that requires
+       de-identified clinical data, IRB approval and a HIPAA-compliant data
+       pathway, it is intentionally left closed in this training build.</p>
+    <p class="muted">Use <strong>Simulated Patients</strong> to practise — no real
+       person's data is involved there.</p>
+  </div>
+</section>
+
+<!-- ================= PATIENT PICKER ================= -->
+<section id="screen-patients" class="screen">
+  <header class="topbar">
+    <button class="btn ghost back" data-back="home">&#8592; Back</button>
+    <h2>Simulated Patients</h2>
+  </header>
+  <div class="tabs wide">
+    <button class="tab active" data-ptab="new">New patient</button>
+    <button class="tab" data-ptab="existing">Existing patients</button>
+  </div>
+
+  <div id="ptab-new" class="ptab active">
+    <div class="card form-card">
+      <div class="field-row">
+        <label>Gender<select id="f-gender"></select></label>
+        <label>Age group<select id="f-age"></select></label>
+        <label>Ethnicity / background<select id="f-ethnicity"></select></label>
+      </div>
+      <label class="block">Mental health concerns <span class="muted">(choose one or more)</span></label>
+      <div id="f-concerns" class="chips"></div>
+      <label class="block">Who do you want to play?</label>
+      <div id="f-role" class="role-picker">
+        <button class="role-opt selected" data-role="counselor"><b>Counsellor</b><span>Mode A — the classic exercise</span></button>
+        <button class="role-opt" data-role="client"><b>Client</b><span>Mode B — see it from the chair</span></button>
+        <button class="role-opt" data-role="supervisor"><b>Supervisor</b><span>Mode C — watch and intervene</span></button>
+      </div>
+      <button id="create-patient" class="btn primary">Create patient &amp; start session</button>
+      <p id="create-error" class="error"></p>
+    </div>
+  </div>
+
+  <div id="ptab-existing" class="ptab">
+    <div id="patient-list" class="patient-list"></div>
+  </div>
+</section>
+
+<!-- ================= SESSION ================= -->
+<section id="screen-session" class="screen">
+  <header class="topbar session-bar">
+    <button class="btn ghost back" data-back="patients">&#8592; Leave</button>
+    <h2 id="s-title">Session</h2>
+    <span id="s-mode" class="pill"></span>
+    <span id="s-mock" class="pill warn hidden">mock LLM</span>
+    <div class="spacer"></div>
+    <button id="btn-tip" class="btn ghost">Ask Supervisor</button>
+    <button id="btn-end" class="btn ghost">End session</button>
+    <button id="btn-feedback" class="btn primary">Feedback</button>
+  </header>
+
+  <div class="session-body">
+    <div class="stage-col">
+      <div id="stage">
+        <canvas id="scene"></canvas>
+        <div id="overlay"></div>
+        <div id="whisper" class="whisper hidden"></div>
+        <div id="stage-hint" class="stage-hint">drag to look around</div>
+      </div>
+
+      <div id="chatpanel">
+        <div id="transcript" class="transcript"></div>
+        <div id="autoplay-bar" class="autoplay-bar hidden">
+          <button id="btn-stepone" class="btn primary">Next turn &#8594;</button>
+          <button id="btn-play" class="btn ghost">&#9654; Auto-play</button>
+          <span id="autoplay-status" class="muted"></span>
+        </div>
+        <div id="composer" class="composer">
+          <div id="turn-hint" class="turn-hint"></div>
+          <div class="composer-row">
+            <select id="emotion-pick" title="How does your character say it?"></select>
+            <textarea id="say-input" rows="2" placeholder="Type what you say…"></textarea>
+            <button id="btn-say" class="btn primary">Send</button>
+          </div>
+          <div id="queued" class="queued hidden"></div>
+        </div>
+      </div>
+    </div>
+
+    <aside id="sidebar">
+      <div class="side-card" id="card-patient"></div>
+      <div class="side-card">
+        <h4>You are playing</h4>
+        <div class="role-switch">
+          <button class="rs" data-switch="client"><i class="dot c-client"></i>Client</button>
+          <button class="rs" data-switch="counselor"><i class="dot c-counselor"></i>Counsellor</button>
+          <button class="rs" data-switch="supervisor"><i class="dot c-supervisor"></i>Supervisor</button>
+        </div>
+        <p class="muted tiny">Switching takes effect between turns. Whoever you leave is taken over by an LLM that keeps reading the whole transcript.</p>
+      </div>
+      <div class="side-card" id="card-rolecard"></div>
+      <div class="side-card" id="card-summary"></div>
+      <div class="side-card" id="card-notes"></div>
+      <div class="side-card" id="card-history"></div>
+    </aside>
+  </div>
+</section>
+
+<!-- ================= MODALS ================= -->
+<div id="modal" class="modal hidden">
+  <div class="modal-box">
+    <button id="modal-close" class="modal-close">&times;</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/figures.js"></script>
+<script src="js/scene.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>
