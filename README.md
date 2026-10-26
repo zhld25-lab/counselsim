@@ -505,6 +505,28 @@ meant to surface.
 
 ---
 
+## New end-to-end UI walkthrough (October 26, 2026)
+
+The following captures document the complete user journey requested by Prof. Chuah, complementing the existing feedback and session-summary screenshots. Image files should be placed in `docs/screenshots/` with the exact names below.
+
+| Figure | Screenshot file | What the screenshot demonstrates |
+|---|---|---|
+| 13 | `13-login.png` | Login form with username/password and separate registration tab |
+| 14 | `14-dashboard.png` | Authenticated dashboard, with simulated-patient entry and restricted real-patient area |
+| 15 | `15-existing-patient-selection.png` | Selection of an existing fictional client (Mei Chen) and her prior session |
+| 16 | `16-patient-creation-and-roles.png` | Patient age/background/concern configuration and choice of counsellor, client, or supervisor role |
+| 17 | `17-counselling-interface.png` | Three.js room, fictional client profile, previous case notes, and a live client response |
+| 18 | `18-supervisor-whisper-overlay.png` | Private, contextual AI-supervisor coaching over the counselling room |
+| 19 | `19-supervisor-guidance-history.png` | Supervisor advice recorded separately in the session transcript area |
+| 20 | `20-session-ended-summary.png` | Session completion and automatically displayed structured summary |
+| 21 | `21-feedback-access-report.png` | Feedback report opened through the separate **Feedback** button; five score dimensions and 8/10 overall in this demonstration |
+
+**Exact feedback workflow:** Ending a session displays its case-note summary, not the scored feedback automatically. The user then clicks the **Feedback** button to view the scoring report. The screenshot's 8/10 score is an illustrative LLM assessment for this single simulated session, not a clinically validated measure.
+
+**Known caveat:** The new session-summary capture also shows an unresolved private topic despite no hidden facts being explicitly revealed. This reproduces the already documented hidden-information leakage risk; it is not evidence that the simulator is ready for real counselling or real patient data.
+
+---
+
 ## Acknowledgements
 
 Built for CSE398/CSE498-024 Lab 3b. The three-role design, attribution-aware
